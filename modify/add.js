@@ -97,3 +97,120 @@ function role() {
             })
         })
     }
+
+//add an employee 
+function employee() {
+
+    begin.con.query('SELECT * FROM role', (err,res) => {
+        if(err) {
+            throw err
+        }
+        inquirer.prompt([
+            {
+                type: 'input',
+                name: 'first',
+                message: "What is the employees first name?" 
+            },
+            {
+                type: 'input',
+                name: 'last',
+                message: "What is the employees last name?" 
+            },
+            {
+                type: 'list',
+                name: 'role',
+                message: "What Role is this employee apart of?",
+                choices: res.map(t => t.title)
+            },
+        ])
+        .then(ans => {
+            let chosenRole;
+
+                res.find(t => {
+                    if (t.title === ans.role) {
+                        chosenRole = t.id
+                    }
+                })
+               begin.con.query(
+                    'INSERT INTO employee SET ?',
+                    {
+                        first_name: ans.first,
+                        last_name: ans.last,
+                        role_id: chosenRole,
+                        
+                    },
+                    err => {
+                        if (err) {
+                            throw err
+                        }
+                        employeePt2(ans)
+                    }
+                )
+            
+        })
+       
+    })
+}   
+    function employeePt2(fill){
+        begin.con.query('SELECT * FROM employee', (err,res) => {
+            if(err) {
+                throw err
+            }
+            let person;
+            res.map(t => {
+                if (t.first_name === fill.first && t.last_name === fill.last){
+                    person = t.id
+                }
+            })
+
+  
+            inquirer.prompt({
+                type: 'confirm',
+                name: 'managerOrNo',
+                message: 'Does this employee have a manager?'
+            })
+            .then(ans => {
+                if (ans.managerOrNo) {
+                    inquirer.prompt({
+                        type: 'list',
+                        name: 'whoManages',
+                        message: 'Who manages this employee?',
+                        choices: res.map(t => `${t.first_name} ${t.last_name}` )
+                    })
+                    .then(ans => {
+                        let chosenMan;
+
+                            res.find(t => {
+                                if (`${t.first_name} ${t.last_name}` === ans.whoManages) {
+                                    chosenMan = t.id
+                                }
+                            })
+
+
+                            begin.con.query(
+                                'UPDATE employee SET ? WHERE ?',
+                                [
+                                    {
+                                        manager_id: chosenMan
+                                    },
+                                    {
+                                        id: person
+                                    }
+                                ],
+                                err => {
+                                    if (err) {
+                                        throw err
+                                    }
+                                    console.log('Employee Added!!!!')
+                                    begin.start()
+                                }
+                            )
+                        })
+                } else {
+                    console.log('Employee Added!!!!')
+                    begin.start()
+                }
+            })
+        }
+    )}
+module.exports.addSomething = addSomething
