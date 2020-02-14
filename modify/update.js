@@ -76,3 +76,88 @@ function updateDepart(departId) {
         }
     )
 }
+
+function roles () {
+    begin.con.query(
+        'SELECT * FROM role', (err, res) => {
+            if (err) {
+                throw err
+            }
+            inquirer.prompt([
+                {
+                type: 'list',
+                name: 'updateRole',
+                message: 'What Role would you like to update',
+                choices: res.map(t => t.title)
+                },
+                {
+                    type: 'list',
+                    name: 'whichRole',
+                    message: 'What part of the Role would you like to update?',
+                    choices: ['Title', 'Salary']
+                },
+                {
+                    type: 'input',
+                    name: 'newUpdate',
+                    message: 'What is the new info?'
+                }
+            ])
+            .then(ans => {
+                let chosenRole;
+
+                res.find(t => {
+                    if (t.title === ans.updateRole) {
+                        chosenRole = t.id
+                    }
+                })
+                let lowerAns = ans.whichRole.toLowerCase()
+                updateRole(chosenRole, ans, lowerAns)
+            })
+        }
+    )
+}
+
+function updateRole (roleId, ans, low) {
+    if (low === 'title') {
+
+    begin.con.query(
+        
+        'UPDATE role SET ? WHERE ?',[
+            {
+                title : ans.newUpdate
+            },
+            {
+                id: roleId
+            }
+            
+        ],
+        err => {
+            if (err) {
+                throw err
+            }
+            console.log('Role Title Updated!!!!')
+            begin.start()
+        }
+    )
+    } else {
+        begin.con.query(
+        
+            'UPDATE role SET ? WHERE ?',[
+                {
+                    title : ans.newUpdate
+                },
+                {
+                    id: roleId
+                }
+                
+            ],
+            err => {
+                if (err) {
+                    throw err
+                }
+                console.log('Role Salary Updated!!!!')
+                begin.start()
+            }
+        )
+    }
+}
